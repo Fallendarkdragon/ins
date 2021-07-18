@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+    mariadb_svc:
+      build: ./requirements/mariadb
+      container_name: mariadb
+      restart: always
+      networks:
+      - inseption_net
+      volumes:
+      - db_vol:/var/lib/mysql/
+      env_file: .env
+    nginx_svc:
+      build: ./requirements/nginx/
+      container_name: nginx
+      depends_on:
+       - wordpress_svc
+      ports:
+       - "443:443"
+      restart: always
+      networks:
+       - inseption_net
+      volumes:
+        - wp_vol:/var/www
+      extra_hosts:
+       - "trachell.42.fr:127.0.0.1"
+    wordpress_svc:
+      build: ./requirements/wordpress/
+      container_name: wordpress
+      depends_on:
+       - mariadb_svc
+      restart: always
+      networks:
+       - inseption_net
+      volumes:
+       - wp_vol:/var/www
+      env_file: .env
+
+networks:
+    inseption_net:
+
+volumes:
+    db_vol:
+      driver: local
+      driver_opts:
+        type: "none"
+        o: "bind"
+        device: "/home/trachell/data/db"
+    wp_vol:
+      driver: local
+      driver_opts:
+        type: "none"
+        o: "bind"
+        device: "/home/trachell/data/wp"
